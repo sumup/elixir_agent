@@ -7,7 +7,8 @@ defmodule NewRelic.Util.HTTP do
     headers = [@gzip | Enum.map(headers, fn {k, v} -> {'#{k}', '#{v}'} end)]
     request = {'#{url}', headers, 'application/json', :zlib.gzip(body)}
 
-    with {:ok, {{_, status_code, _}, _headers, body}} <-
+    with :ok <- maybe_set_proxy(),
+         {:ok, {{_, status_code, _}, _headers, body}} <-
            :httpc.request(:post, request, http_options(), []) do
       {:ok, %{status_code: status_code, body: to_string(body)}}
     end
@@ -28,7 +29,8 @@ defmodule NewRelic.Util.HTTP do
     headers = Enum.map(headers, fn {k, v} -> {'#{k}', '#{v}'} end)
     request = {'#{url}', headers}
 
-    with {:ok, {{_, status_code, _}, _, body}} <-
+    with :ok <- maybe_set_proxy(),
+         {:ok, {{_, status_code, _}, _, body}} <-
            :httpc.request(:get, request, http_options(opts), []) do
       {:ok, %{status_code: status_code, body: to_string(body)}}
     end
@@ -53,5 +55,20 @@ defmodule NewRelic.Util.HTTP do
       ]
     ]
     |> Keyword.merge(opts)
+  end
+
+  @spec maybe_set_proxy() :: :ok | {:error, any()}
+  defp maybe_set_proxy do
+    :new_relic_agent
+    |> Application.get_env(__MODULE__, [])
+    |> Keyword.get(:proxy)
+    |> case do
+      {{host, port}, opts} ->
+        host = if is_binary(host), do: String.to_charlist(host), else: host
+        port = if is_binary(port), do: String.to_integer(port), else: port
+
+        :httpc.set_options(proxy: {{host, port}, opts})
+      _ -> :ok
+    end
   end
 end
