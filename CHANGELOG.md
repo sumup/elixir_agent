@@ -1,5 +1,20 @@
 ## CHANGELOG
 
+### `v1.27.6`
+
+Tweaks
+* Update Telemetry dependency to allow Telemetry 1.0. [#363](https://github.com/newrelic/elixir_agent/pull/363) Thanks @jimsynz!
+
+### `v1.27.5`
+
+Fixes
+* Avoid a race condition during Task instrumentation compilation. [#359](https://github.com/newrelic/elixir_agent/pull/359) Thanks @mhanberg!
+
+### `v1.27.4`
+
+Fixes
+* Don't fail an Other Transaction upon expected error. [#357](https://github.com/newrelic/elixir_agent/pull/357)
+
 ### `v1.27.3`
 
 Fixes
